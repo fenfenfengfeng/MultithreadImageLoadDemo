@@ -20,11 +20,16 @@ import java.net.URL;
 public class BitmapUtil {
 
     static void download(String url, ImageView iv) {
-        if (cancelPotentialTask(url, iv)) {
-            ImageDownloaderTask task = new ImageDownloaderTask(iv);
-            ImageViewDrawable drawable = new ImageViewDrawable(task);
-            iv.setImageDrawable(drawable);
-            task.execute(url);
+        Bitmap bitmap = ImageCache.instance().getBitmapFromCache(url);
+        if (bitmap != null) {
+            iv.setImageBitmap(bitmap);
+        } else {
+            if (cancelPotentialTask(url, iv)) {
+                ImageDownloaderTask task = new ImageDownloaderTask(iv);
+                ImageViewDrawable drawable = new ImageViewDrawable(task);
+                iv.setImageDrawable(drawable);
+                task.execute(url);
+            }
         }
     }
 
@@ -67,6 +72,7 @@ public class BitmapUtil {
             if (stream != null)
                 stream.close();
             connection.disconnect();
+            ImageCache.instance().addBitmapToCache(url, bitmap);
             return bitmap;
         } catch (IOException e) {
             e.printStackTrace();
